@@ -1,0 +1,5 @@
+# Lines starting with '#' are considered comments.
+
+# Ignore Flash binary files
+*.fla
+*.swf
