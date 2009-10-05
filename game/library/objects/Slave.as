@@ -1,7 +1,11 @@
-package game.library.objects {
+﻿package game.library.objects {
 	
 	import assets.Drum3SoundClass;
+	import assets.emoAngryClass;
+	import assets.emoDeathClass;
+	import assets.emoThirstyClass;
 	import assets.SlaveClass;
+	import assets.SlaveDeathClass;
 	import assets.WoundsClass;
 	
 	import flash.display.MovieClip;
@@ -10,6 +14,9 @@ package game.library.objects {
 	import flash.media.Sound;
 	import flash.media.SoundChannel;
 	import flash.utils.Timer;
+	import fl.transitions.Tween;
+	import fl.transitions.easing.*;
+	import fl.transitions.TweenEvent;
 	
 	public class Slave extends assets.SlaveClass {
 	    
@@ -52,8 +59,18 @@ package game.library.objects {
 		private var deathSound:Sound = new Drum3SoundClass();
 	    private var channel:SoundChannel = new SoundChannel();
 	    
+	    private var emoTween:Tween;
+		private var holdTween:Tween;
+		private var fade:Tween;
+	    
 	    // Wounds
 		private var wounds:WoundsClass;
+		
+		private var emo;
+		private var hasEmotion:Boolean;
+		public static  const emoAlpha = 0.8;
+
+		private var deathAnimation:SlaveDeathClass;
 			  
 		// constructor
 		public function Slave() {
@@ -88,6 +105,7 @@ package game.library.objects {
 			wounds.x = WOUNDS_OFFSET.x;
 			wounds.y = WOUNDS_OFFSET.y;
 			this.addChild(wounds);
+			wounds.stop();
 		}
 		
 		public function update(frameRate:Number):void {
@@ -98,7 +116,7 @@ package game.library.objects {
 		    }
 		    
 		    // Increase thirst
-		    if (Math.random() * 100 < 30) {
+		    if (Math.random() * 100 < (1 + (Math.ceil(_output))) ) {
 				_thirst += Math.ceil(_output / (frameRate * 100));
 			}
 		    
@@ -115,15 +133,38 @@ package game.library.objects {
         			}
     			}
 		    }
+		    
+		    if (_thirst > 80) {
+				//trace("i'm thirsty!");
+				doEmotion("thirsty");
+			}
+			else {
+				if (hasEmotion && _emotion == "thirsty") {
+					endEmo();
+				}
+			}
+			
+			if (_numWhips <= 2 && !hasEmotion) {
+				doEmotion("death");
+			}
 		}
 		
 		public function doWhip():void {
 		    
 		    if (_numWhips > 0) {
 		        
+		        // Slaves dont like getting whipped repeatedly for no reason
+				if (_output >= MAX_OUTPUT - 1) {
+					doEmotion("angry");
+				}
     		    // Set health
     		    --_numWhips;
     		    this.wounds.play();
+    		    //wounds.gotoAndStop(wounds.currentFrame + 1);
+    		    
+    		    removeChild(wounds);
+				this.gotoAndPlay("hit");
+				addChild(wounds);
     		    
     		    // Die
     		    if (_numWhips <= 0) {
@@ -145,8 +186,21 @@ package game.library.objects {
 		    // Play sound
 		    channel = deathSound.play();
 		    
-		    // Animate death
-		    // TODO
+		    //this.visible = false;
+
+			removeChild(myHands);
+			if (this.contains(emo)) {
+				removeChild(emo);
+			}
+			hasEmotion = true;
+			gotoAndPlay("death");
+
+			// Animate death
+			deathAnimation = new SlaveDeathClass();
+			deathAnimation.x = - 130;
+			addChild(deathAnimation);
+
+			parent.removeChild(this);
 		}
 		
 		public function startRow():void {
@@ -237,6 +291,52 @@ package game.library.objects {
 		public function recoverThirst(myThirst:int):void {
 			_thirst -= myThirst;
 			trace(_thirst);
+		}
+		
+		private function doEmotion(which:String):void {
+			//trace(which);
+			if (!hasEmotion) {
+				if (which == "angry") {
+					emo = new emoAngryClass();
+					this.emotion = "angry";
+				} else if (which == "death") {
+					emo = new emoDeathClass();
+					this.emotion = "death";
+				} else if (which == "thirsty") {
+					emo = new emoThirstyClass();
+					this.emotion = "thirsty";
+				}
+				emo.alpha = 0;
+				emo.x = - 20;
+				emo.y = - 150;
+				addChild(emo);
+				hasEmotion = true;
+				emoTween = new Tween(emo, "alpha", Regular.easeOut, 0, emoAlpha, 1, true);
+				emoTween.addEventListener(TweenEvent.MOTION_FINISH, endTween);
+			}
+		}
+		private function endTween(e:TweenEvent) {
+			emoTween.removeEventListener(TweenEvent.MOTION_FINISH, endTween);
+			holdTween = new Tween(emo, "alpha", Regular.easeIn, emoAlpha, emoAlpha, Math.random() * 2 + 1, true);
+			holdTween.addEventListener(TweenEvent.MOTION_FINISH, fadeOut);
+		}
+		private function fadeOut(e:TweenEvent) {
+			holdTween.removeEventListener(TweenEvent.MOTION_FINISH, fadeOut);
+			fade = new Tween(emo, "alpha", Regular.easeIn, emoAlpha, 0, 1, true);
+			fade.addEventListener(TweenEvent.MOTION_FINISH, noEmo);
+		}
+		private function noEmo(e:TweenEvent) {
+			fade.removeEventListener(TweenEvent.MOTION_FINISH, noEmo);
+			if (this.contains(emo)) {
+				removeChild(emo);
+			}
+			hasEmotion = false;
+		}
+		private function endEmo() {
+			if (this.contains(emo)) {
+				removeChild(emo);
+			}
+			hasEmotion = false;
 		}
 	}
 }

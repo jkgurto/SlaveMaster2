@@ -56,8 +56,8 @@
 		
 		//private const SPEED_BAR_WIDTH:int = 100;
 		private const BOAT_POS:Point = new Point(0, 100);
-		private const DRUM_POS:Point = new Point(330, 200);
-		private const GOURD_POS:Point = new Point(700, 50);
+		private const DRUM_POS:Point = new Point(310, 200);
+		private const GOURD_POS:Point = new Point(380, 350);
         
         // Points on the benches
         // (x, y, layer)
@@ -143,6 +143,7 @@
 		public var reset:Boolean = true;
 		private var difficulty:Difficulty = null;
 		private var slaveCount:int = 0;
+		private var gameTimer:int = 0;
 		private var positions:Array = new Array();
 		private var spaceDown:Boolean = false;
 		
@@ -252,6 +253,8 @@
 				
 				// -- Distance to goal
 				difficulty.update(stage.frameRate);
+				
+				gameTimer++;
 			}
 		}
 		
@@ -772,7 +775,7 @@
     			    //trace("space down");
     			    
     			    if (!spaceDown) {
-        				drum.doBeat();
+        				drum.doBeat(gameTimer);
         				spaceDown = true;
     			    }
     			}
@@ -867,8 +870,8 @@
 				gourd.stopDrag();
 				gourdOn = false;
 			}
-			gourd.x = e.stageX - 30;
-			gourd.y = e.stageY - 20;
+			gourd.x = e.stageX - 20;
+			gourd.y = e.stageY - 10;
 			gourd.startDrag();
 			gourd.gotoAndStop("drag");
 			gourdOn = true;
