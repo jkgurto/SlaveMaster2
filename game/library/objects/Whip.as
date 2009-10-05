@@ -1,1 +1,1 @@
-﻿package game.library.objects {        import flash.display.MovieClip;        public class Whip extends flash.display.MovieClip {                public function Whip() {		}    }}
+﻿package game.library.objects {        import assets.WhipClass;        public class Whip extends assets.WhipClass {                public function Whip() {		}    }}
