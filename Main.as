@@ -25,6 +25,7 @@
 	import game.library.objects.Environment;
 	import game.library.objects.Slave;
 	import game.library.objects.SlaveMaster;
+	import game.library.objects.SlavePosition;
 	
 	import mx.core.Application;
 	
@@ -59,35 +60,36 @@
 		private const GOURD_POS:Point = new Point(700, 50);
         
         // Points on the benches
+        // (x, y, layer)
         // Bench 1 - Top left
-        public static var POINT_1:Point = new Point(150, 200);
-        public static var POINT_2:Point = new Point(220, 200);
-        public static var POINT_3:Point = new Point(290, 200);
+        public static var POINT_1:SlavePosition = new SlavePosition(150, 200, 0);
+        public static var POINT_2:SlavePosition = new SlavePosition(220, 200, 1);
+        public static var POINT_3:SlavePosition = new SlavePosition(290, 200, 2);
         
         // Bench 2 - Top right
-        public static var POINT_4:Point = new Point(460, 200);
-        public static var POINT_5:Point = new Point(530, 200);
-        public static var POINT_6:Point = new Point(600, 200);
+        public static var POINT_4:SlavePosition = new SlavePosition(460, 200, 3);
+        public static var POINT_5:SlavePosition = new SlavePosition(530, 200, 4);
+        public static var POINT_6:SlavePosition = new SlavePosition(600, 200, 5);
         
         // Bench 3 - Middle left
-        public static var POINT_7:Point = new Point( 80, 290);
-        public static var POINT_8:Point = new Point(170, 290);
-        public static var POINT_9:Point = new Point(260, 290);
+        public static var POINT_7:SlavePosition = new SlavePosition( 80, 290, 6);
+        public static var POINT_8:SlavePosition = new SlavePosition(170, 290, 7);
+        public static var POINT_9:SlavePosition = new SlavePosition(260, 290, 8);
         
         // Bench 4 - Middle right
-        public static var POINT_10:Point = new Point(490, 290);
-        public static var POINT_11:Point = new Point(580, 290);
-        public static var POINT_12:Point = new Point(670, 290);
+        public static var POINT_10:SlavePosition = new SlavePosition(490, 290, 9);
+        public static var POINT_11:SlavePosition = new SlavePosition(580, 290, 10);
+        public static var POINT_12:SlavePosition = new SlavePosition(670, 290, 11);
         
         // Bench 5 - Bottom left
-        public static var POINT_13:Point = new Point( 40, 400);
-        public static var POINT_14:Point = new Point(140, 400);
-        public static var POINT_15:Point = new Point(240, 400);
+        public static var POINT_13:SlavePosition = new SlavePosition( 40, 400, 12);
+        public static var POINT_14:SlavePosition = new SlavePosition(140, 400, 13);
+        public static var POINT_15:SlavePosition = new SlavePosition(240, 400, 14);
         
         // Bench 47- Bottom right
-        public static var POINT_16:Point = new Point(500, 400);
-        public static var POINT_17:Point = new Point(600, 400);
-        public static var POINT_18:Point = new Point(700, 400);
+        public static var POINT_16:SlavePosition = new SlavePosition(500, 400, 15);
+        public static var POINT_17:SlavePosition = new SlavePosition(600, 400, 16);
+        public static var POINT_18:SlavePosition = new SlavePosition(700, 400, 17);
 		
 		// -- Variables
 		private var currentState:String;
@@ -141,13 +143,18 @@
 		private var difficulty:Difficulty = null;
 		private var reset:Boolean = true;
 		private var slaveCount:int = 0;
+		private var positions:Array = new Array();
+		private var spaceDown:Boolean = false;
 		
 		public function Main() {
 		}
 		
 		public function setup():void {
+		    
+		    // Frame listener
 			stage.addEventListener(Event.ENTER_FRAME, this.enterFrame);
 			
+			// Formats
 			labelFormat = new TextFormat();
 			labelFormat.color = LABEL_COLOUR;
 			labelFormat.size = LABEL_SIZE;
@@ -160,6 +167,26 @@
 			buttonFormat.color = BUTTON_COLOUR;
 			buttonFormat.size = BUTTON_SIZE;
 			
+			// Positions
+			positions.push(POINT_1);
+			positions.push(POINT_2);
+			positions.push(POINT_3);
+			positions.push(POINT_4);
+			positions.push(POINT_5);
+			positions.push(POINT_6);
+			positions.push(POINT_7);
+			positions.push(POINT_8);
+			positions.push(POINT_9);
+			positions.push(POINT_10);
+			positions.push(POINT_11);
+			positions.push(POINT_12);
+			positions.push(POINT_13);
+			positions.push(POINT_14);
+			positions.push(POINT_15);
+			positions.push(POINT_16);
+			positions.push(POINT_17);
+			positions.push(POINT_18);
+			
 			// Sets volume and panning (left or right)
 			// Sprite has its own sound transform
 			this.soundTransform = new SoundTransform(START_SOUND_VOLUME,
@@ -167,6 +194,7 @@
 												     
 			// -- Start listening to keyboard
 			stage.addEventListener(KeyboardEvent.KEY_DOWN, this.keyDownHandler);
+			stage.addEventListener(KeyboardEvent.KEY_UP, this.keyUpHandler);
 			
 			setCurrentState("StartState");
 			//setCurrentState("PlayState");
@@ -437,76 +465,79 @@
 				boat.y = BOAT_POS.y;
 				
 				// -- Difficulty
-				difficulty = new Difficulty(this, boat);
+				difficulty = new Difficulty(this, boat, positions.length);
 				
 				// -- Environment
 				environment = new Environment();
 				
 				// -- Slaves
 				// - Remove old slaves
-				
 				while(slaves.numChildren  > 0) {
     				slaves.removeChildAt(0);
+				}
+				
+				var i:int;
+				for (i = 0; i < positions.length; ++i) {
+				    positions[i].taken = false;
 				}
 				
 				// - Add new slaves
 				var slave:Slave;
 				
-				// - Slave 1
-				slave = new Slave();
-				
-				// Set position
-				slave.x = POINT_1.x;
-				slave.y = POINT_1.y;
-				
-				// Add to game
-				slaves.addChild(slave);
-				boat.addItem(slave);
-				++slaveCount;
-				
-				slave.addEventListener(MouseEvent.CLICK, this.slaveClick);
-				
-				// - Slave 2
-				slave = new Slave();
-				
-				// Set position
-				slave.x = POINT_16.x;
-				slave.y = POINT_16.y;
-				
-				// Add to game
-				slaves.addChild(slave);
-				boat.addItem(slave);
-				++slaveCount;
-				
-				slave.addEventListener(MouseEvent.CLICK, this.slaveClick);
-				
-				// - Slave 3
-				slave = new Slave();
-				
-				// Set position
-				slave.x = POINT_17.x;
-				slave.y = POINT_17.y;
-				
-				// Add to game
-				slaves.addChild(slave);
-				boat.addItem(slave);
-				++slaveCount;
-				
-				slave.addEventListener(MouseEvent.CLICK, this.slaveClick);
-				
-				// - Slave 4
-				slave = new Slave();
-				
-				// Set position
-				slave.x = POINT_18.x;
-				slave.y = POINT_18.y;
-				
-				// Add to game
-				slaves.addChild(slave);
-				boat.addItem(slave);
-				++slaveCount;
-				
-				slave.addEventListener(MouseEvent.CLICK, this.slaveClick);
+				var j:int;
+				for (i = 0; i < difficulty.numSlaves; ++i) {
+				    
+				    // Randomly pick a position
+    				j = int(Math.random() * positions.length);
+    				trace("index " + j);
+    				
+    				// Cycle through positions until one is free
+    				while (positions[j].taken) {
+    				    ++j;
+    				    if (j >= positions.length) {
+    				        j = 0;
+    				    }
+    				}
+    				
+    				// Take position
+    				positions[j].taken = true;
+    				
+    				slave = new Slave();
+    				slave.x = positions[j].x;
+    				slave.y = positions[j].y;
+    				slave.layer = positions[j].layer;
+    				
+    				// Place in correct layer
+    				trace("layer " + slave.layer);
+    				
+    				var k:int;
+    				var s:Slave;
+    				var found:Boolean;
+    				
+    				found = false;
+    				for (k = 0; k < slaves.numChildren; ++k) {
+    				    
+    				    trace("k " + k);
+    				    
+    				    s = slaves.getChildAt(k) as Slave;
+    				    if (s.layer >= slave.layer) {
+    				        trace("found");
+        				    slaves.addChildAt(slave, k);
+        				    found = true;
+        				    break;
+        				}
+    				}
+    				
+    				// Add to game
+    				if (!found) {
+    				    slaves.addChildAt(slave, 0);
+    				}
+    				
+    				boat.addItem(slave);
+    				++slaveCount;
+    				
+    				slave.addEventListener(MouseEvent.CLICK, this.slaveClick);
+				}
 				
 				// -- Drum
 				drum = new Drum();
@@ -707,9 +738,21 @@
 			environment.pause();
 		}
 		
+		private function keyUpHandler(event:KeyboardEvent):void {
+		    
+		    if (this.currentState == "PlayState") {
+		        
+    			if (event.keyCode == Keyboard.SPACE) {
+    			    //trace("space up");
+    				spaceDown = false;
+    			}
+			}
+		}
+		
 		private function keyDownHandler(event:KeyboardEvent):void {
 			
 			if (this.currentState == "PlayState") {
+			    
     			if (event.keyCode == Keyboard.ESCAPE) {
     				setCurrentState("GameOverState");
     			}
@@ -717,8 +760,12 @@
     				setCurrentState("PausedState");
     			}
     			else if (event.keyCode == Keyboard.SPACE) {
-    			    trace("space");
-    				drum.doBeat();
+    			    //trace("space down");
+    			    
+    			    if (!spaceDown) {
+        				drum.doBeat();
+        				spaceDown = true;
+    			    }
     			}
 			}
 		}

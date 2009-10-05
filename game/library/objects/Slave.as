@@ -31,6 +31,8 @@ package game.library.objects {
 		private var _id:uint;
 		private var _type:String;    // type descriptor of slave
 		
+		private var _layer:int = 1;
+		
 		// number of times whipped
 		private var _numWhips:int = DEFAULT_MAX_WHIPS;
 		// maximum number of whips
@@ -173,6 +175,14 @@ package game.library.objects {
 		
 		public function get type():String {
 			return _type;
+		}
+		
+		public function get layer():int {
+			return _layer;
+		}
+		
+		public function set layer(value:int):void {
+			_layer = value;
 		}
 		
 		public function get numWhips():int {
