@@ -1,5 +1,6 @@
 ﻿package {
 	
+	import assets.GourdClass;
 	import assets.IntroSoundClass;
 	
 	import fl.controls.Button;
@@ -55,6 +56,7 @@
 		//private const SPEED_BAR_WIDTH:int = 100;
 		private const BOAT_POS:Point = new Point(0, 100);
 		private const DRUM_POS:Point = new Point(330, 200);
+		private const GOURD_POS:Point = new Point(700, 50);
         
         // Points on the benches
         // Bench 1 - Top left
@@ -130,6 +132,10 @@
 		private var environment:Environment = null;
 		private var slaves:Sprite = new Sprite();
 		private var slaveMaster:SlaveMaster = null;
+		
+		// Aesthetics
+		private var gourd:GourdClass = null;
+		private var gourdOn:Boolean = false;
 		
 		// Game state
 		private var difficulty:Difficulty = null;
@@ -500,10 +506,7 @@
 				boat.addItem(slave);
 				++slaveCount;
 				
-				slave.addEventListener(MouseEvent.CLICK, this.slaveClick); 
-				
-				// -- Slave Master
-				slaveMaster = new SlaveMaster();
+				slave.addEventListener(MouseEvent.CLICK, this.slaveClick);
 				
 				// -- Drum
 				drum = new Drum();
@@ -511,6 +514,19 @@
 				drum.y = DRUM_POS.y;
 				
 				boat.drum = drum;
+				
+				// -- Slave Master
+				slaveMaster = new SlaveMaster();
+				
+				// Water Gourd
+				gourd = new assets.GourdClass();
+				gourd.x = GOURD_POS.x;
+				gourd.y = GOURD_POS.y;
+				gourd.scaleX = gourd.scaleY = 0.5;
+				gourd.addEventListener(MouseEvent.MOUSE_DOWN, this.startWater);
+				gourd.addEventListener(MouseEvent.MOUSE_UP, this.stopWater);
+				gourd.addEventListener(MouseEvent.MOUSE_OVER, this.hoverWater);
+				gourd.addEventListener(MouseEvent.MOUSE_OUT, this.outWater);
 			}
 			
 			// -- Add scene to stage
@@ -522,6 +538,7 @@
 			
 			stage.addChild(slaves);
 			stage.addChild(slaveMaster);
+			stage.addChild(gourd);
 			
 			// -- Start timer
 			resumeTimers();
@@ -530,17 +547,12 @@
 		private function exitPlayState():void {
 			
 			stage.removeChild(environment);
-			stage.removeChild(boat);
-			stage.removeChild(slaveMaster);
-			stage.removeChild(drum);
-			
 			stage.removeChild(difficulty);
-			//stage.removeChild(difficulty.distanceLeftText);
-			//stage.removeChild(difficulty.timeLeftText);
-			
-			//stage.removeChild(drum.beatText);
-			
+			stage.removeChild(boat);
+			stage.removeChild(drum);
 			stage.removeChild(slaves);
+			stage.removeChild(slaveMaster);
+			stage.removeChild(gourd);
 			
 			// -- Stop timers
 			pauseTimers();
@@ -791,6 +803,43 @@
 			// Play sound in loop
 			startChannel = startSound.play(0, 0, this.soundTransform);
 			startChannel.addEventListener(Event.SOUND_COMPLETE, onStartSoundComplete);
+		}
+		
+		private function startWater(e:MouseEvent):void {
+			if (gourdOn) {
+				gourd.stopDrag();
+				gourdOn = false;
+			}
+			gourd.x = e.stageX - 30;
+			gourd.y = e.stageY - 20;
+			gourd.startDrag();
+			gourd.gotoAndStop("drag");
+			gourdOn = true;
+		}
+		private function stopWater(e:MouseEvent):void {
+			gourd.stopDrag();
+			gourd.gotoAndStop("start");
+			gourdOn = false;
+			var i:int;
+			var slave:Slave;
+			for (i = 0; i < slaves.numChildren; ++i) {
+				slave = slaves.getChildAt(i) as Slave;
+				if (slave.hitTestPoint(e.stageX, e.stageY)) {
+					slave.recoverThirst(15);
+				}
+			}
+			gourd.x = GOURD_POS.x;
+			gourd.y = GOURD_POS.y;
+		}
+		private function hoverWater(e:MouseEvent):void {
+			if (!gourdOn) {
+				gourd.gotoAndStop("hover");
+			}
+		}
+		private function outWater(e:MouseEvent):void {
+			if (!gourdOn) {
+				gourd.gotoAndStop("start");
+			}
 		}
 	
 	}
