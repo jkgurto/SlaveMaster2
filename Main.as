@@ -140,8 +140,8 @@
 		private var gourdOn:Boolean = false;
 		
 		// Game state
+		public var reset:Boolean = true;
 		private var difficulty:Difficulty = null;
-		private var reset:Boolean = true;
 		private var slaveCount:int = 0;
 		private var positions:Array = new Array();
 		private var spaceDown:Boolean = false;
@@ -186,6 +186,9 @@
 			positions.push(POINT_16);
 			positions.push(POINT_17);
 			positions.push(POINT_18);
+			
+			// -- Difficulty
+			difficulty = new Difficulty(this, positions.length);
 			
 			// Sets volume and panning (left or right)
 			// Sprite has its own sound transform
@@ -464,8 +467,7 @@
 				boat.x = BOAT_POS.x;
 				boat.y = BOAT_POS.y;
 				
-				// -- Difficulty
-				difficulty = new Difficulty(this, boat, positions.length);
+				difficulty.boat = boat;
 				
 				// -- Environment
 				environment = new Environment();
@@ -663,12 +665,16 @@
 			
 			gameOverInfoLabel.setStyle("textFormat", infoLabelFormat);
 			
-			if (difficulty.distance <= 0) {
+			// Check for win
+			if (difficulty.win) {
 				gameOverInfoLabel.text = "Win";
 			}
 			else {
 				gameOverInfoLabel.text = "Lose";
 			}
+			
+			// New difficulty after checking for win
+			difficulty = new Difficulty(this, positions.length);
 			
 			gameOverInfoLabel.x = LABEL_X - (gameOverInfoLabel.width * 0.5);
 			gameOverInfoLabel.y = gameOverLabel.y + gameOverLabel.height + BUTTON_SPACE_Y;
@@ -708,21 +714,24 @@
 		    // game.library.objects.Slave
 		    slave = event.currentTarget as Slave;
 			
-			slaveMaster.doWhip(event);
-			slave.doWhip();
-			
-			if (slave.isDead()) {
-				
-				// Remove from game
-				slaves.removeChild(slave);
-				boat.removeItem(slave);
-				
-				// Check if all the slaves are dead
-			    --slaveCount;
-				
-				if (slaveCount <= 0) {
-					setCurrentState("GameOverState");
-				}
+			// Check slave is not already dead
+			if (!slave.isDead()) {
+    			slaveMaster.doWhip(event);
+    			slave.doWhip();
+    			
+    			if (slave.isDead()) {
+    				
+    				// Remove from game
+    				//slaves.removeChild(slave);
+    				boat.removeItem(slave);
+    				
+    				// Check if all the slaves are dead
+    			    --slaveCount;
+    				
+    				if (slaveCount <= 0) {
+    					setCurrentState("GameOverState");
+    				}
+    			}
 			}
 		}
 		

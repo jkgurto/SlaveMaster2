@@ -152,13 +152,13 @@ package game.library.objects {
 		public function startRow():void {
 		    
 		    _rowing = true;
-		    trace("startRow");
+		    //trace("startRow");
         }
         
         public function stopRow():void {
 		    
 		    _rowing = false;
-		    trace("stopRow");
+		    //trace("stopRow");
         }
 		
 		public function isDead():Boolean {
