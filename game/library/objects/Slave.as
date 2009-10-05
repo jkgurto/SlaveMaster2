@@ -65,6 +65,9 @@ package game.library.objects {
 			
 			this.scaleX = SLAVE_SCALE;
 			this.scaleY = SLAVE_SCALE;
+			
+			// thirst
+			_thirst = 0;
 		    
 		    // Output
 		    _output = MIN_OUTPUT;
@@ -91,6 +94,11 @@ package game.library.objects {
 		    if (_output > MIN_OUTPUT) {
 		        _output -= (OUTPUT_DECREASE / frameRate);
 		    }
+		    
+		    // Increase thirst
+		    if (Math.random() * 100 < 30) {
+				_thirst += Math.ceil(_output / (frameRate * 100));
+			}
 		    
 		    // Animate hands based on speed
 		    if (_rowing) {
@@ -217,7 +225,8 @@ package game.library.objects {
 		}
 		
 		public function recoverThirst(myThirst:int):void {
-			return;
+			_thirst -= myThirst;
+			trace(_thirst);
 		}
 	}
 }

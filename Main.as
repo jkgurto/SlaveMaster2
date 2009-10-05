@@ -527,6 +527,7 @@
 				gourd.addEventListener(MouseEvent.MOUSE_UP, this.stopWater);
 				gourd.addEventListener(MouseEvent.MOUSE_OVER, this.hoverWater);
 				gourd.addEventListener(MouseEvent.MOUSE_OUT, this.outWater);
+				gourd.stop();
 			}
 			
 			// -- Add scene to stage
