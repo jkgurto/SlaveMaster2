@@ -1,5 +1,5 @@
 
-package game.library.objects {
+package game.library.states {
 	
 	public class Text {
 	
@@ -11,9 +11,14 @@ package game.library.objects {
 		"Motivate your team!\n" + 
 		"Whip the slaves to 'encourage' them to row harder,\n" + 
 		"but don't kill them because the insurance does\n" + 
-		"cover it.\n\n" +
+		"cover it.\n" +
+		"Give the slaves some water when they get thirsty\n" + 
+		"or their work may suffer." +
+		"\n" +
 		"- Click slaves to whip them.\n" + 
-		"- Press space to beat the drum.\n";
+		"- Press space to beat the drum.\n" +
+		"- Drag gourd to give them a drink.\n" +
+		"- Distance and time in top right corner.\n";
 		
 		public static const CREDITS_STRING:String =
 		"COMP4431 Game Design Workshop\n" + 

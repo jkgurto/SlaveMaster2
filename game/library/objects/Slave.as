@@ -14,9 +14,10 @@
 	import flash.media.Sound;
 	import flash.media.SoundChannel;
 	import flash.utils.Timer;
+	
 	import fl.transitions.Tween;
-	import fl.transitions.easing.*;
 	import fl.transitions.TweenEvent;
+	import fl.transitions.easing.*;
 	
 	public class Slave extends assets.SlaveClass {
 	    
@@ -66,9 +67,9 @@
 	    // Wounds
 		private var wounds:WoundsClass;
 		
-		private var emo;
+		private var emo:MovieClip;
 		private var hasEmotion:Boolean;
-		public static  const emoAlpha = 0.8;
+		public static const emoAlpha:Number = 0.8;
 
 		private var deathAnimation:SlaveDeathClass;
 			  
@@ -106,6 +107,8 @@
 			wounds.y = WOUNDS_OFFSET.y;
 			this.addChild(wounds);
 			wounds.stop();
+			
+			this.stop()
 		}
 		
 		public function update(frameRate:Number):void {
@@ -136,16 +139,16 @@
 		    
 		    if (_thirst > 80) {
 				//trace("i'm thirsty!");
-				doEmotion("thirsty");
+				//doEmotion("thirsty");
 			}
 			else {
 				if (hasEmotion && _emotion == "thirsty") {
-					endEmo();
+					//endEmo();
 				}
 			}
 			
 			if (_numWhips <= 2 && !hasEmotion) {
-				doEmotion("death");
+				//doEmotion("death");
 			}
 		}
 		
@@ -155,15 +158,15 @@
 		        
 		        // Slaves dont like getting whipped repeatedly for no reason
 				if (_output >= MAX_OUTPUT - 1) {
-					doEmotion("angry");
+					//doEmotion("angry");
 				}
     		    // Set health
     		    --_numWhips;
-    		    this.wounds.play();
-    		    //wounds.gotoAndStop(wounds.currentFrame + 1);
+    		    //this.wounds.play();
+    		    wounds.gotoAndStop(wounds.currentFrame + 1);
     		    
     		    removeChild(wounds);
-				this.gotoAndPlay("hit");
+				//this.gotoAndPlay("hit");
 				addChild(wounds);
     		    
     		    // Die
@@ -189,11 +192,11 @@
 		    //this.visible = false;
 
 			removeChild(myHands);
-			if (this.contains(emo)) {
-				removeChild(emo);
-			}
+			//if (this.contains(emo)) { // FIXME
+			//	removeChild(emo);
+			//}
 			hasEmotion = true;
-			gotoAndPlay("death");
+			//gotoAndPlay("death");
 
 			// Animate death
 			deathAnimation = new SlaveDeathClass();
@@ -299,10 +302,12 @@
 				if (which == "angry") {
 					emo = new emoAngryClass();
 					this.emotion = "angry";
-				} else if (which == "death") {
+				}
+				else if (which == "death") {
 					emo = new emoDeathClass();
 					this.emotion = "death";
-				} else if (which == "thirsty") {
+				}
+				else if (which == "thirsty") {
 					emo = new emoThirstyClass();
 					this.emotion = "thirsty";
 				}
@@ -311,32 +316,81 @@
 				emo.y = - 150;
 				addChild(emo);
 				hasEmotion = true;
-				emoTween = new Tween(emo, "alpha", Regular.easeOut, 0, emoAlpha, 1, true);
-				emoTween.addEventListener(TweenEvent.MOTION_FINISH, endTween);
+				
+				//Tween(obj:Object, prop:String, func:Function, begin:Number, finish:Number, duration:Number, useSeconds:Boolean = false)
+				//Tween(listener:Object, startValue:Object, endValue:Object, duration:Number = -1, minFps:Number = -1, updateFunction:Function = null, endFunction:Function = null)
+				/*
+				emoTween = new Tween(emo,
+				                     "alpha",
+				                     Quadratic.easeOut,
+				                     0,
+				                     emoAlpha,
+				                     1,
+				                     true);
+				*/
+				emoTween = new Tween(emo,
+				                     0,
+				                     emoAlpha,
+				                     1000,
+				                     1);
+				emoTween.addEventListener(TweenEvent.TWEEN_END, endTween);
 			}
 		}
-		private function endTween(e:TweenEvent) {
-			emoTween.removeEventListener(TweenEvent.MOTION_FINISH, endTween);
-			holdTween = new Tween(emo, "alpha", Regular.easeIn, emoAlpha, emoAlpha, Math.random() * 2 + 1, true);
-			holdTween.addEventListener(TweenEvent.MOTION_FINISH, fadeOut);
+		
+		private function endTween(e:TweenEvent):void {
+			emoTween.removeEventListener(TweenEvent.TWEEN_END, endTween);
+			
+			/*
+			holdTween = new Tween(emo,
+			                      "alpha",
+			                      Quadratic.easeIn,
+			                      emoAlpha,
+			                      emoAlpha,
+			                      Math.random() * 2 + 1,
+			                      true);
+			*/
+			emoTween = new Tween(emo,
+			                     0,
+			                     emoAlpha,
+			                     (Math.random() * 2 + 1) * 1000,
+			                     1);
+				                     
+			holdTween.addEventListener(TweenEvent.TWEEN_END, fadeOut);
 		}
-		private function fadeOut(e:TweenEvent) {
-			holdTween.removeEventListener(TweenEvent.MOTION_FINISH, fadeOut);
-			fade = new Tween(emo, "alpha", Regular.easeIn, emoAlpha, 0, 1, true);
-			fade.addEventListener(TweenEvent.MOTION_FINISH, noEmo);
+		
+		private function fadeOut(e:TweenEvent):void {
+			holdTween.removeEventListener(TweenEvent.TWEEN_END, fadeOut);
+			/*
+			fade = new Tween(emo,
+			                 "alpha",
+			                 Quadratic.easeIn,
+			                 emoAlpha,
+			                 0,
+			                 1,
+			                 true);
+			*/
+			emoTween = new Tween(emo,
+			                     0,
+			                     emoAlpha,
+			                     1000,
+			                     1);
+			fade.addEventListener(TweenEvent.TWEEN_END, noEmo);
 		}
-		private function noEmo(e:TweenEvent) {
-			fade.removeEventListener(TweenEvent.MOTION_FINISH, noEmo);
+		
+		private function noEmo(e:TweenEvent):void {
+			fade.removeEventListener(TweenEvent.TWEEN_END, noEmo);
 			if (this.contains(emo)) {
 				removeChild(emo);
 			}
 			hasEmotion = false;
 		}
-		private function endEmo() {
+		
+		private function endEmo():void {
 			if (this.contains(emo)) {
 				removeChild(emo);
 			}
 			hasEmotion = false;
 		}
+		
 	}
 }
